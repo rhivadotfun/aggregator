@@ -11,9 +11,6 @@ services:
     networks:
       - webnet
     env_file: .env
-    environment:
-      REDIS_URL: ${REDIS_URL}
-      SENTRY_AUTH_TOKEN: ${SENTRY_AUTH_TOKEN}
 networks:
   webnet:
     driver: bridge
