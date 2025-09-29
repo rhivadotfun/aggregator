@@ -287,12 +287,17 @@ function FieldFilter() {
           >
             Generate PnL
           </button>
-          <button
-            type="button"
-            className="flex-1 border border-primary text-primary px-4 py-3 rounded-md text-nowrap"
-          >
-            Track Positions
-          </button>
+          <div className="relative">
+            <button
+              type="button"
+              className="flex-1 border border-primary text-primary px-4 py-3 rounded-md text-nowrap"
+            >
+              Track Positions
+            </button>
+            <div className="absolute -top-4 -right-4 bg-red-500 px-1.5 py-1 rounded-full">
+              Coming Soon
+            </div>
+          </div>
         </div>
       </div>
       <GeneratePnLModal

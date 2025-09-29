@@ -18,7 +18,8 @@ export default function Header() {
           />
         </Link>
         <Link
-          href="/"
+          href="https://x.com/rhivadotfun"
+          target="_blank"
           className="ml-auto"
         >
           <Image

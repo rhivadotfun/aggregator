@@ -31,7 +31,7 @@ export abstract class ApiImpl {
         }),
       );
     const q = new URLSearchParams(encodedQuery);
-    return format("%?%", path, q.toString());
+    return format("%s?%s", path, q.toString());
   }
 
   static async getData<T extends object | number | string>(

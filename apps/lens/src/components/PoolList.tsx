@@ -1,6 +1,8 @@
 "use client";
 
 import type z from "zod";
+import type { Chart } from "@rhiva-ag/dex-api";
+import InfiniteScroll from "react-infinite-scroll-component";
 import { useCallback, useMemo, useState } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import type {
@@ -13,14 +15,15 @@ import Search from "./Search";
 import Filter from "./Filter";
 import PoolCard from "./PoolCard";
 import { useTRPC, useTRPCClient } from "../trpc.client";
-import InfiniteScroll from "react-infinite-scroll-component";
+import Decimal from "./Decimal";
 
 type PoolListProps = {
   limit: number;
+  chart?: Chart;
   pools?: z.infer<typeof pairAggregateSchema>[];
 };
 
-export default function PoolList({ pools, limit }: PoolListProps) {
+export default function PoolList({ pools, chart, limit }: PoolListProps) {
   const trpc = useTRPC();
   const trpcClient = useTRPCClient();
   const [args, setArgs] = useState<{
@@ -74,16 +77,39 @@ export default function PoolList({ pools, limit }: PoolListProps) {
   return (
     <section className="flex-1 flex flex-col space-y-4 p-4 md:px-8 2xl:px-16">
       <div className="flex flex-col space-y-4">
-        <Search
-          onSearchAction={(value) => {
-            setArgs((args) => {
-              return {
-                ...args,
-                search: { name: { ilike: value }, id: { ilike: value } },
-              };
-            });
-          }}
-        />
+        <div className="lt-md:flex-col lt-md:space-y-4 md:flex md:space-x-4 md:items-center">
+          <Search
+            className="flex-1"
+            onSearchAction={(value) => {
+              setArgs((args) => {
+                return {
+                  ...args,
+                  search: { name: { ilike: value }, id: { ilike: value } },
+                };
+              });
+            }}
+          />
+          {chart && (
+            <div className="flex space-x-4">
+              <div className="flex flex-col space-y-1 bg-white/5 border border-white/15 p-4 rounded lt-md:flex-1">
+                <p className="text-gray">Total Value Locked</p>
+                <Decimal
+                  leading="$"
+                  value={parseFloat(chart.liquidity)}
+                  className="text-xl"
+                />
+              </div>
+              <div className="flex flex-col space-y-1 bg-white/5 border border-white/15 p-4 rounded lt-md:flex-1">
+                <p className="text-gray">24H Volume</p>
+                <Decimal
+                  leading="$"
+                  value={parseFloat(chart.cumulativeVolume)}
+                  className="text-xl"
+                />
+              </div>
+            </div>
+          )}
+        </div>
         <Filter
           onChangeAction={(filter, orderBy) => {
             setArgs((args) => {

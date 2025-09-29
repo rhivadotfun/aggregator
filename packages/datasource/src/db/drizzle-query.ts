@@ -109,7 +109,9 @@ export const buildDrizzleWhereClauseFromObject = <
   };
 
   for (const [name, operator] of Object.entries(value))
-    query.push(...getFilters<SQL<unknown>>(sql`${name}`, operator));
+    query.push(
+      ...getFilters<SQL<unknown>>(sql.raw(format('"%s"', name)), operator),
+    );
 
   return query;
 };
@@ -128,7 +130,7 @@ export const buildOrderByClauseFromObject = <
     if (opName in mapOrderByOperators) {
       const op =
         mapOrderByOperators[opName as keyof typeof mapOrderByOperators];
-      query.push(op(sql`${value}`));
+      query.push(op(sql.raw(format('"%s"', value))));
     } else
       throw new FilterSchemaError(format("op %s is not supported", opName));
   }

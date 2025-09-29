@@ -18,7 +18,14 @@ const mono = IBM_Plex_Mono({
   weight: ["400", "700"],
 });
 
-export const metadata: Metadata = {};
+export const metadata: Metadata = {
+  title: "RhivaLens",
+  description:
+    "This tool was created to support your DLMM journey at saros.xyz",
+  openGraph: {
+    images: ["https://lens.rhiva.fun/illustration.png"],
+  },
+};
 
 export default function RootLayout({ children }: React.PropsWithChildren) {
   return (

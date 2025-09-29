@@ -23,11 +23,12 @@ describe("pair.controller", () => {
     const orderBy = buildOrderByClauseFromObject(
       pairOrderBySchema.parse(["H24SwapsVolumeUsd"]),
     );
-
     const pairs = await getAggregratedPairs(db, {
       where: and(...where),
       orderBy,
     });
+
+    console.log(pairs);
     expect(pairs).toBeArray();
   });
 });

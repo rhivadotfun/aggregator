@@ -1,5 +1,6 @@
 import type z from "zod";
 import Link from "next/link";
+import { format } from "util";
 import Image from "next/image";
 import { useCallback, useMemo } from "react";
 import type { pairAggregateSchema } from "@rhiva-ag/trpc";
@@ -8,7 +9,7 @@ import Money from "./Money";
 import Decimal from "./Decimal";
 import BirdEye from "../assets/b.png";
 import Photon from "../assets/ph.png";
-import Axios from "../assets/axi.png";
+import Saros from "../assets/saros.jpg";
 import Jupiter from "../assets/jup.png";
 import Dexscreener from "../assets/dex.png";
 
@@ -18,11 +19,39 @@ export default function PoolCard({
   pair: z.infer<typeof pairAggregateSchema>;
 }) {
   const links = [
-    { image: BirdEye, name: "birdeye" },
-    { image: Axios, name: "axios" },
-    { image: Dexscreener, name: "dexscreener" },
-    { image: Jupiter, name: "jupiter" },
-    { image: Photon, name: "photon" },
+    {
+      image: BirdEye,
+      name: "birdeye",
+      link: format(
+        "https://birdeye.so/solana/token/%s/%s",
+        pair.baseMint.id,
+        pair.id,
+      ),
+    },
+    {
+      image: Saros,
+      name: "saros",
+      link: format("https://dlmm.saros.xyz/pool/%s", pair.id),
+    },
+    {
+      image: Dexscreener,
+      name: "dexscreener",
+      link: format("https://dexscreener.com/solana/%s", pair.id),
+    },
+    {
+      image: Jupiter,
+      name: "jupiter",
+      link: format(
+        "https://jup.ag/swap?sell=%s&buy=%s",
+        pair.baseMint.id,
+        pair.quoteMint.id,
+      ),
+    },
+    {
+      image: Photon,
+      name: "photon",
+      link: format("https://photon-sol.tinyastro.io/en/lp/%s", pair.id),
+    },
   ];
 
   const calculateFeeTVLRatio = useCallback((fees: number, tvl: number) => {
@@ -89,7 +118,8 @@ export default function PoolCard({
         {links.map((link) => (
           <Link
             key={link.name}
-            href="/"
+            href={link.link}
+            target="_blank"
             className="grayscale transition bg-black rounded  hover:grayscale-0"
           >
             <Image
@@ -97,6 +127,7 @@ export default function PoolCard({
               alt={link.name}
               width={24}
               height={24}
+              className="rounded"
             />
           </Link>
         ))}
@@ -163,12 +194,16 @@ export default function PoolCard({
                   <td>
                     <div className="flex items-center justify-end space-x-2">
                       <Decimal
+                        compact
+                        hideSign
                         value={buyCount}
-                        className="w-12 px-4  bg-green-500/10 text-green text-center rounded-sm"
+                        className="w-16 px-4  bg-green-500/10 text-green text-center rounded-sm"
                       />
                       <Decimal
+                        hideSign
+                        compact
                         value={sellCount}
-                        className="w-12 px-4 bg-red-500/10 text-red text-center rounded-sm"
+                        className="w-16 px-4 bg-red-500/10 text-red text-center rounded-sm"
                       />
                     </div>
                   </td>

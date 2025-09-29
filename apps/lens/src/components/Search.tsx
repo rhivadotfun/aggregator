@@ -1,4 +1,5 @@
 "use client";
+import clsx from "clsx";
 import debounce from "lodash.debounce";
 import { useEffect, useMemo } from "react";
 import { MdSearch } from "react-icons/md";
@@ -7,7 +8,10 @@ type SearchProps = {
   onSearchAction(value?: string): void;
 };
 
-export default function Search({ onSearchAction }: SearchProps) {
+export default function Search({
+  onSearchAction,
+  ...props
+}: SearchProps & React.ComponentProps<"div">) {
   const onChange = useMemo(
     () =>
       debounce((event: React.ChangeEvent<HTMLInputElement>) => {
@@ -23,7 +27,13 @@ export default function Search({ onSearchAction }: SearchProps) {
   }, [onChange]);
 
   return (
-    <div className="flex items-center space-x-2 border border-white/10 rounded-md px-2 focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/20 group">
+    <div
+      {...props}
+      className={clsx(
+        "flex items-center space-x-2 border border-white/10 rounded-md px-2 focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/20 group",
+        props.className,
+      )}
+    >
       <MdSearch
         size={24}
         className="text-white/50 group-focus-within:text-primary"
