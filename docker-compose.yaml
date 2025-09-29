@@ -14,35 +14,7 @@ services:
     environment:
       REDIS_URL: ${REDIS_URL}
       SENTRY_AUTH_TOKEN: ${SENTRY_AUTH_TOKEN}
-  redis:
-    image: redis:7-alpine
-    restart: unless-stopped
-    command:
-      [
-        "redis-server",
-        "--appendonly",
-        "yes",
-        "--save",
-        "900",
-        "1",
-        "--save",
-        "300",
-        "10",
-        "--save",
-        "60",
-        "10000",
-        "--replica-read-only",
-        "no",
-      ]
-    networks:
-      - webnet
-    volumes:
-      - redis-data:/data
-
 networks:
   webnet:
     driver: bridge
-    external: true
-volumes:
-  redis-data:
     external: true
