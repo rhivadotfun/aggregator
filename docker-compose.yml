@@ -15,6 +15,7 @@ services:
     networks:
       - webnet
       - redis
+      - postgres
     env_file: .env
 
   tasks:
@@ -30,6 +31,7 @@ services:
           cpus: "1.0"
     networks:
       - redis
+      - postgres
     env_file: .env
 
   jobs:
@@ -47,6 +49,7 @@ services:
       - tasks
     networks:
       - redis
+      - postgres
     env_file: .env
 
   metrics:
@@ -64,6 +67,7 @@ services:
           cpus: "1.0"
     networks:
       - redis
+      - postgres
     environment:
       PORT: 8001
     env_file: .env
@@ -73,3 +77,5 @@ networks:
     driver: overlay
   redis:
     external: true
+  postgres: 
+    external: true 
