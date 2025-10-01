@@ -187,7 +187,7 @@ export const getSarosPNL = async (
       closeAmount,
       name: pair.name,
       duration: closeTime - openTime,
-      tvl: Math.max(openAmount, closeAmount),
+      tvl: openAmount,
     };
   }
 

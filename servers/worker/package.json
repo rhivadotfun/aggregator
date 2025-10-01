@@ -15,6 +15,7 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@coingecko/coingecko-typescript": "^2.0.0",
     "@coral-xyz/anchor": "^0.31.1",
     "@metaplex-foundation/umi": "^1.4.1",
     "@metaplex-foundation/umi-bundle-defaults": "^1.4.1",

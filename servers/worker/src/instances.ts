@@ -4,6 +4,7 @@ import { web3 } from "@coral-xyz/anchor";
 import { createDB } from "@rhiva-ag/datasource";
 import { Client } from "@solana-tracker/data-api";
 import { cacheResultFn } from "@rhiva-ag/shared";
+import Coingecko from "@coingecko/coingecko-typescript";
 
 import { getEnv } from "./env";
 
@@ -23,3 +24,8 @@ export const solanatracker = new Client({
 
 export const db = createDB(getEnv("DATABASE_URL"));
 export const cacheResult = cacheResultFn(redis, 60);
+
+export const coingecko = new Coingecko({
+  environment: "demo",
+  demoAPIKey: getEnv<string>("GECKO_API_KEY"),
+});

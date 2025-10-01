@@ -5,10 +5,11 @@ import { format } from "util";
 type Env =
   | "PORT"
   | "HOST"
-  | "RPC_URL"
   | "REDIS_URL"
+  | "GECKO_API_KEY"
   | "DATABASE_URL"
-  | "SOLANA_TRACKER_API_KEY";
+  | "SOLANA_TRACKER_API_KEY"
+  | "RPC_URL";
 
 export const getEnv = <T extends object | number | string | null = string>(
   name: Env,
