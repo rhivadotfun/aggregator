@@ -40,7 +40,7 @@ export abstract class ProgramInstructionProcessor<
       | web3.PartiallyDecodedInstruction
     )[]
   ) {
-    return collectMap(instructions, (instruction) => {
+    return collectMap(instructions, (instruction, index) => {
       if ("data" in instruction && this.isProgram(instruction.programId)) {
         const parsed = this.coder.instruction.decode(
           instruction.data,
@@ -49,6 +49,7 @@ export abstract class ProgramInstructionProcessor<
 
         return {
           parsed,
+          index,
           program: this.extra.name,
           programId: instruction.programId,
           accounts: instruction.accounts,
@@ -69,7 +70,7 @@ export abstract class ProgramInstructionEventProcessor<
       | web3.PartiallyDecodedInstruction
     )[]
   ) {
-    return collectMap(instructions, (instruction) => {
+    return collectMap(instructions, (instruction, index) => {
       if ("data" in instruction && this.isProgram(instruction.programId)) {
         const rawData = bs58.decode(instruction.data);
         const bs64 = base64.encode(rawData.subarray(8));
@@ -79,6 +80,7 @@ export abstract class ProgramInstructionEventProcessor<
 
         if (parsed)
           return {
+            index,
             parsed,
             program: this.extra.name,
             programId: instruction.programId,

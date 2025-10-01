@@ -23,7 +23,6 @@ import {
   mints,
   upsertMint,
   type Database,
-  type swapInsertSchema,
   type pairInsertSchema,
   type pairSelectSchema,
   type mintSelectSchema,
@@ -31,6 +30,7 @@ import {
 
 import { cacheResult } from "../instances";
 import { getMultiplePrices } from "./price-controller";
+import { BN } from "bn.js";
 
 export const transformSarosPairAccount = ({
   binStep,
@@ -62,8 +62,6 @@ export const transformSarosPairAccount = ({
     market: "saros",
     maxFee: baseFee,
     binStep: binStep,
-    baseReserveAmount: 0,
-    quoteReserveAmount: 0,
     baseReserveAmountUsd: 0,
     quoteReserveAmountUsd: 0,
     baseMint: tokenMintX.toBase58(),
@@ -155,8 +153,6 @@ export const upsertSarosPair = async (
           liquidity: pairs.liquidity,
           dynamicFee: pairs.dynamicFee,
           protocolFee: pairs.protocolFee,
-          baseReserveAmount: pairs.baseReserveAmount,
-          quoteReserveAmount: pairs.quoteReserveAmount,
           baseReserveAmountUsd: pairs.baseReserveAmountUsd,
           quoteReserveAmountUsd: pairs.quoteReserveAmountUsd,
         },
@@ -196,48 +192,45 @@ export const createSarosSwap = async (
     db,
     pairs,
     getMultiplePrices,
-    ...values.map(
-      (
-        value,
-      ): Omit<
-        z.infer<typeof swapInsertSchema>,
-        "baseAmountUsd" | "quoteAmountUsd" | "feeUsd"
-      > => {
-        const pair = pairs.find((pair) =>
-          value.pair.equals(new web3.PublicKey(pair.id)),
-        );
-        assert(
-          pair,
-          format(
-            "pair %s not created for swap %s",
-            value.pair.toBase58(),
-            signature,
-          ),
-        );
-        const baseAmount = value.swapForY ? value.amountIn : value.amountOut;
-        const quoteAmount = value.swapForY ? value.amountOut : value.amountIn;
-        const feeDecimals = value.swapForY
-          ? pair.baseMint.decimals
-          : pair.quoteMint.decimals;
-
-        return {
+    ...values.map((value, index) => {
+      const pair = pairs.find((pair) =>
+        value.pair.equals(new web3.PublicKey(pair.id)),
+      );
+      assert(
+        pair,
+        format(
+          "pair %s not created for swap %s",
+          value.pair.toBase58(),
           signature,
-          extra: {},
-          tvl: pair.liquidity,
-          type: value.swapForY ? "sell" : "buy",
-          pair: value.pair.toBase58(),
-          fee: new Decimal(value.fee.toString())
-            .div(Math.pow(10, feeDecimals))
-            .toNumber(),
-          baseAmount: new Decimal(baseAmount.toString())
-            .div(Math.pow(10, pair.baseMint.decimals))
-            .toNumber(),
-          quoteAmount: new Decimal(quoteAmount.toString())
-            .div(Math.pow(10, pair.quoteMint.decimals))
-            .toNumber(),
-        };
-      },
-    ),
+        ),
+      );
+      const baseAmount = value.swapForY ? value.amountIn : value.amountOut;
+      const quoteAmount = value.swapForY ? value.amountOut : value.amountIn;
+
+      const feeX = value.swapForY ? value.fee : new BN(0);
+      const feeY = value.swapForY ? new BN(0) : value.fee;
+
+      return {
+        signature,
+        extra: {},
+        tvl: pair.liquidity,
+        instructionIndex: index,
+        pair: value.pair.toBase58(),
+        type: value.swapForY ? ("sell" as const) : ("buy" as const),
+        feeX: new Decimal(feeX.toString())
+          .div(Math.pow(10, pair.baseMint.decimals))
+          .toNumber(),
+        feeY: new Decimal(feeY.toString())
+          .div(Math.pow(10, pair.quoteMint.decimals))
+          .toNumber(),
+        baseAmount: new Decimal(baseAmount.toString())
+          .div(Math.pow(10, pair.baseMint.decimals))
+          .toNumber(),
+        quoteAmount: new Decimal(quoteAmount.toString())
+          .div(Math.pow(10, pair.quoteMint.decimals))
+          .toNumber(),
+      };
+    }),
   );
 };
 
@@ -362,8 +355,6 @@ export async function syncSarosPairs(
         if (tokenXPrice && tokenYPrice) {
           return {
             syncAt: new Date(),
-            baseReserveAmount,
-            quoteReserveAmount,
             baseReserveAmountUsd,
             quoteReserveAmountUsd,
             id: pair.pubkey.toBase58(),

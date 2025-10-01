@@ -1,3 +1,4 @@
+cat > docker-compose.yml <<EOF
 services:
   trpc:
     build: 
@@ -51,3 +52,8 @@ networks:
     external: true
   postgres: 
     external: true 
+EOF 
+
+git pull 
+docker compose build 
+docker compose up -d

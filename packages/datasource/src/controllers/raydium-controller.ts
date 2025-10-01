@@ -25,7 +25,6 @@ import {
   upsertMint,
   type Database,
   type pairInsertSchema,
-  type swapInsertSchema,
 } from "@rhiva-ag/datasource";
 
 import { cacheResult } from "../instances";
@@ -50,8 +49,6 @@ export const transformRaydiumPairAccount = (
     maxFee: baseFee,
     liquidity: 0,
     dynamicFee: 0,
-    baseReserveAmount: 0,
-    quoteReserveAmount: 0,
     baseReserveAmountUsd: 0,
     quoteReserveAmountUsd: 0,
     market: "raydium" as const,
@@ -180,8 +177,6 @@ const upsertRaydiumPair = async (
           dynamicFee: pairs.dynamicFee,
           protocolFee: pairs.protocolFee,
           liquidity: pairs.liquidity,
-          baseReserveAmount: pairs.baseReserveAmount,
-          quoteReserveAmount: pairs.quoteReserveAmount,
           baseReserveAmountUsd: pairs.baseReserveAmountUsd,
           quoteReserveAmountUsd: pairs.quoteReserveAmountUsd,
         },
@@ -235,53 +230,47 @@ export const createRaydiumV3Swap = async (
     db,
     pairs,
     getMultiplePrices,
-    ...swapEvents.map(
-      (
-        swapEvent,
-      ): Omit<
-        z.infer<typeof swapInsertSchema>,
-        "baseAmountUsd" | "quoteAmountUsd" | "feeUsd"
-      > => {
-        const pair = pairs.find((pair) =>
-          swapEvent.poolState.equals(new web3.PublicKey(pair.id)),
-        );
-        assert(
-          pair,
-          format(
-            "pair %s not created for swap %s",
-            swapEvent.poolState.toBase58(),
-            signature,
-          ),
-        );
-
-        const baseAmount = swapEvent.zeroForOne
-          ? swapEvent.amount1
-          : swapEvent.amount0;
-        const quoteAmount = swapEvent.zeroForOne
-          ? swapEvent.amount0
-          : swapEvent.amount1;
-        const feeDecimals = swapEvent.zeroForOne
-          ? pair.baseMint.decimals
-          : pair.quoteMint.decimals;
-
-        return {
+    ...swapEvents.map((swapEvent, index) => {
+      const pair = pairs.find((pair) =>
+        swapEvent.poolState.equals(new web3.PublicKey(pair.id)),
+      );
+      assert(
+        pair,
+        format(
+          "pair %s not created for swap %s",
+          swapEvent.poolState.toBase58(),
           signature,
-          extra: {},
-          tvl: pair.liquidity,
-          pair: swapEvent.poolState.toBase58(),
-          type: swapEvent.zeroForOne ? "sell" : "buy",
-          fee: new Decimal(swapEvent.transferFee0.toString())
-            .div(Math.pow(10, feeDecimals))
-            .toNumber(),
-          baseAmount: new Decimal(baseAmount.toString())
-            .div(Math.pow(10, pair.baseMint.decimals))
-            .toNumber(),
-          quoteAmount: new Decimal(quoteAmount.toString())
-            .div(Math.pow(10, pair.quoteMint.decimals))
-            .toNumber(),
-        };
-      },
-    ),
+        ),
+      );
+
+      const baseAmount = swapEvent.zeroForOne
+        ? swapEvent.amount1
+        : swapEvent.amount0;
+      const quoteAmount = swapEvent.zeroForOne
+        ? swapEvent.amount0
+        : swapEvent.amount1;
+
+      return {
+        signature,
+        extra: {},
+        tvl: pair.liquidity,
+        instructionIndex: index,
+        pair: swapEvent.poolState.toBase58(),
+        type: swapEvent.zeroForOne ? ("sell" as const) : ("buy" as const),
+        feeX: new Decimal(swapEvent.transferFee0.toString())
+          .div(Math.pow(10, pair.baseMint.decimals))
+          .toNumber(),
+        feeY: new Decimal(swapEvent.transferFee1.toString())
+          .div(Math.pow(10, pair.quoteMint.decimals))
+          .toNumber(),
+        baseAmount: new Decimal(baseAmount.toString())
+          .div(Math.pow(10, pair.baseMint.decimals))
+          .toNumber(),
+        quoteAmount: new Decimal(quoteAmount.toString())
+          .div(Math.pow(10, pair.quoteMint.decimals))
+          .toNumber(),
+      };
+    }),
   );
 };
 
@@ -418,7 +407,7 @@ export async function syncRaydiumPairs(
           .div(Math.pow(10, pair.mintY.decimals))
           .toNumber();
         const baseReserveAmountUsd = baseReserveAmount * tokenXPrice.price;
-        const quoteReserveAmountUsd = baseReserveAmount * tokenYPrice.price;
+        const quoteReserveAmountUsd = quoteReserveAmount * tokenYPrice.price;
 
         const transformedPairAccount = transformRaydiumPairAccount(
           pair,
@@ -428,8 +417,6 @@ export async function syncRaydiumPairs(
         if (tokenXPrice && tokenYPrice) {
           return {
             syncAt: new Date(),
-            baseReserveAmount,
-            quoteReserveAmount,
             baseReserveAmountUsd,
             quoteReserveAmountUsd,
             id: pair.pubkey.toBase58(),

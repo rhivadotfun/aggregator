@@ -52,8 +52,6 @@ export const seedSaros = async (db: Database, api: DexApi) => {
             maxFee: baseFee,
             dynamicFee: baseFee,
             binStep: pool.binStep,
-            baseReserveAmount: 0,
-            quoteReserveAmount: 0,
             protocolFee: baseFee * 0.2,
             baseMint: pool.tokenX.mintAddress,
             quoteMint: pool.tokenY.mintAddress,

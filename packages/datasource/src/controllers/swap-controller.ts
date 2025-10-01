@@ -11,10 +11,10 @@ export const createSwap = async (
   getMultiplePrices: (
     mints: string[],
   ) => Promise<Record<string, { price: number }>>,
-  ...values: Omit<
+  ...values: (Omit<
     z.infer<typeof swapInsertSchema>,
     "baseAmountUsd" | "quoteAmountUsd" | "feeUsd"
-  >[]
+  > & { feeX: number; feeY: number; baseAmount: number; quoteAmount: number })[]
 ) => {
   const mints = pairs.flatMap((pair) => [pair.baseMint.id, pair.quoteMint.id]);
   const prices = await getMultiplePrices(mints);
@@ -37,7 +37,7 @@ export const createSwap = async (
 
         return {
           ...value,
-          feeUsd: basePrice.price * value.fee,
+          feeUsd: basePrice.price * value.feeX + quotePrice.price * value.feeY,
           baseAmountUsd: basePrice.price * value.baseAmount,
           quoteAmountUsd: quotePrice.price * value.quoteAmount,
         };

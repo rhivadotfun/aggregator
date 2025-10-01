@@ -22,7 +22,6 @@ import {
   rewardMints,
   type Database,
   type pairInsertSchema,
-  type swapInsertSchema,
   type pairSelectSchema,
   type mintSelectSchema,
   mints,
@@ -63,8 +62,6 @@ export const transformOrcaPairAccount = (
     maxFee: 10,
     liquidity: 0,
     dynamicFee,
-    baseReserveAmount: 0,
-    quoteReserveAmount: 0,
     baseReserveAmountUsd: 0,
     quoteReserveAmountUsd: 0,
     market: "orca" as const,
@@ -190,8 +187,6 @@ const upsertOrcaPair = async (
           dynamicFee: pairs.dynamicFee,
           protocolFee: pairs.protocolFee,
           liquidity: pairs.liquidity,
-          baseReserveAmount: pairs.baseReserveAmount,
-          quoteReserveAmount: pairs.quoteReserveAmount,
           baseReserveAmountUsd: pairs.baseReserveAmountUsd,
           quoteReserveAmountUsd: pairs.quoteReserveAmountUsd,
         },
@@ -244,54 +239,47 @@ export const createOrcaSwap = async (
     db,
     pairs,
     getMultiplePrices,
-    ...swapEvents.map(
-      (
-        swapEvent,
-      ): Omit<
-        z.infer<typeof swapInsertSchema>,
-        "baseAmountUsd" | "quoteAmountUsd" | "feeUsd"
-      > => {
-        const pair = pairs.find((pair) =>
-          swapEvent.whirlpool.equals(new web3.PublicKey(pair.id)),
-        );
-        assert(
-          pair,
-          format(
-            "pair %s not created for swap %s",
-            swapEvent.whirlpool.toBase58(),
-            signature,
-          ),
-        );
-
-        const baseAmount = swapEvent.aToB
-          ? swapEvent.inputAmount
-          : swapEvent.outputAmount;
-        const quoteAmount = swapEvent.aToB
-          ? swapEvent.outputAmount
-          : swapEvent.inputAmount;
-
-        const feeDecimals = swapEvent.aToB
-          ? pair.baseMint.decimals
-          : pair.quoteMint.decimals;
-
-        return {
+    ...swapEvents.map((swapEvent, index) => {
+      const pair = pairs.find((pair) =>
+        swapEvent.whirlpool.equals(new web3.PublicKey(pair.id)),
+      );
+      assert(
+        pair,
+        format(
+          "pair %s not created for swap %s",
+          swapEvent.whirlpool.toBase58(),
           signature,
-          extra: {},
-          tvl: pair.liquidity,
-          type: swapEvent.aToB ? "sell" : "buy",
-          pair: swapEvent.whirlpool.toBase58(),
-          fee: new Decimal(swapEvent.lpFee.toString())
-            .div(Math.pow(10, feeDecimals))
-            .toNumber(),
-          baseAmount: new Decimal(baseAmount.toString())
-            .div(Math.pow(10, pair.baseMint.decimals))
-            .toNumber(),
-          quoteAmount: new Decimal(quoteAmount.toString())
-            .div(Math.pow(10, pair.quoteMint.decimals))
-            .toNumber(),
-        };
-      },
-    ),
+        ),
+      );
+
+      const baseAmount = swapEvent.aToB
+        ? swapEvent.inputAmount
+        : swapEvent.outputAmount;
+      const quoteAmount = swapEvent.aToB
+        ? swapEvent.outputAmount
+        : swapEvent.inputAmount;
+
+      return {
+        signature,
+        extra: {},
+        tvl: pair.liquidity,
+        instructionIndex: index,
+        type: swapEvent.aToB ? ("sell" as const) : ("buy" as const),
+        pair: swapEvent.whirlpool.toBase58(),
+        feeX: new Decimal(swapEvent.inputTransferFee.toString())
+          .div(Math.pow(10, pair.baseMint.decimals))
+          .toNumber(),
+        feeY: new Decimal(swapEvent.outputTransferFee.toString())
+          .div(Math.pow(10, pair.quoteMint.decimals))
+          .toNumber(),
+        baseAmount: new Decimal(baseAmount.toString())
+          .div(Math.pow(10, pair.baseMint.decimals))
+          .toNumber(),
+        quoteAmount: new Decimal(quoteAmount.toString())
+          .div(Math.pow(10, pair.quoteMint.decimals))
+          .toNumber(),
+      };
+    }),
   );
 };
 
@@ -427,15 +415,13 @@ export async function syncOrcaPairs(
           .div(Math.pow(10, pair.mintY.decimals))
           .toNumber();
         const baseReserveAmountUsd = baseReserveAmount * tokenXPrice.price;
-        const quoteReserveAmountUsd = baseReserveAmount * tokenYPrice.price;
+        const quoteReserveAmountUsd = quoteReserveAmount * tokenYPrice.price;
 
         const transformedPairAccount = transformOrcaPairAccount(pair, oracle);
 
         if (tokenXPrice && tokenYPrice) {
           return {
             syncAt: new Date(),
-            baseReserveAmount,
-            quoteReserveAmount,
             baseReserveAmountUsd,
             quoteReserveAmountUsd,
             id: pair.pubkey.toBase58(),

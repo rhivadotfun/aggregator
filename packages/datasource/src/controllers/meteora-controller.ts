@@ -1,3 +1,4 @@
+import BN from "bn.js";
 import assert from "assert";
 import { format } from "util";
 import type z from "zod/mini";
@@ -22,10 +23,9 @@ import {
   rewardMints,
   upsertMint,
   type Database,
-  type pairSelectSchema,
   type mintSelectSchema,
   type pairInsertSchema,
-  type swapInsertSchema,
+  type pairSelectSchema,
 } from "@rhiva-ag/datasource";
 
 import { cacheResult } from "../instances";
@@ -57,13 +57,11 @@ export const transformMeteoraPairAccount = ({
     baseFee,
     dynamicFee,
     protocolFee,
+    binStep,
     extra: {},
     liquidity: 0,
     maxFee: 10,
     market: "meteora",
-    binStep: binStep,
-    baseReserveAmount: 0,
-    quoteReserveAmount: 0,
     baseReserveAmountUsd: 0,
     quoteReserveAmountUsd: 0,
     baseMint: tokenXMint.toBase58(),
@@ -162,8 +160,6 @@ const upsertMeteoraPair = async (
           dynamicFee: pairs.dynamicFee,
           protocolFee: pairs.protocolFee,
           liquidity: pairs.liquidity,
-          baseReserveAmount: pairs.baseReserveAmount,
-          quoteReserveAmount: pairs.quoteReserveAmount,
           baseReserveAmountUsd: pairs.baseReserveAmountUsd,
           quoteReserveAmountUsd: pairs.quoteReserveAmountUsd,
         },
@@ -217,53 +213,49 @@ export const createMeteoraSwap = async (
     db,
     pairs,
     getMultiplePrices,
-    ...swapEvents.map(
-      (
-        swapEvent,
-      ): Omit<
-        z.infer<typeof swapInsertSchema>,
-        "baseAmountUsd" | "quoteAmountUsd" | "feeUsd"
-      > => {
-        const pair = pairs.find((pair) =>
-          swapEvent.lbPair.equals(new web3.PublicKey(pair.id)),
-        );
-        assert(
-          pair,
-          format(
-            "pair %s not created for swap %s",
-            swapEvent.lbPair.toBase58(),
-            signature,
-          ),
-        );
-
-        const baseAmount = swapEvent.swapForY
-          ? swapEvent.amountIn
-          : swapEvent.amountOut;
-        const quoteAmount = swapEvent.swapForY
-          ? swapEvent.amountOut
-          : swapEvent.amountIn;
-        const feeDecimals = swapEvent.swapForY
-          ? pair.baseMint.decimals
-          : pair.quoteMint.decimals;
-
-        return {
+    ...swapEvents.map((swapEvent, index) => {
+      const pair = pairs.find((pair) =>
+        swapEvent.lbPair.equals(new web3.PublicKey(pair.id)),
+      );
+      assert(
+        pair,
+        format(
+          "pair %s not created for swap %s",
+          swapEvent.lbPair.toBase58(),
           signature,
-          extra: {},
-          tvl: pair.liquidity,
-          type: swapEvent.swapForY ? "sell" : "buy",
-          pair: swapEvent.lbPair.toBase58(),
-          fee: new Decimal(swapEvent.fee.toString())
-            .div(Math.pow(10, feeDecimals))
-            .toNumber(),
-          baseAmount: new Decimal(baseAmount.toString())
-            .div(Math.pow(10, pair.baseMint.decimals))
-            .toNumber(),
-          quoteAmount: new Decimal(quoteAmount.toString())
-            .div(Math.pow(10, pair.quoteMint.decimals))
-            .toNumber(),
-        };
-      },
-    ),
+        ),
+      );
+
+      const baseAmount = swapEvent.swapForY
+        ? swapEvent.amountIn
+        : swapEvent.amountOut;
+      const quoteAmount = swapEvent.swapForY
+        ? swapEvent.amountOut
+        : swapEvent.amountIn;
+      const feeX = swapEvent.swapForY ? swapEvent.fee : new BN(0);
+      const feeY = swapEvent.swapForY ? new BN(0) : swapEvent.fee;
+
+      return {
+        signature,
+        extra: {},
+        tvl: pair.liquidity,
+        instructionIndex: index,
+        pair: swapEvent.lbPair.toBase58(),
+        type: swapEvent.swapForY ? ("sell" as const) : ("buy" as const),
+        feeX: new Decimal(feeX.toString())
+          .div(Math.pow(10, pair.baseMint.decimals))
+          .toNumber(),
+        feeY: new Decimal(feeY.toString())
+          .div(Math.pow(10, pair.quoteMint.decimals))
+          .toNumber(),
+        baseAmount: new Decimal(baseAmount.toString())
+          .div(Math.pow(10, pair.baseMint.decimals))
+          .toNumber(),
+        quoteAmount: new Decimal(quoteAmount.toString())
+          .div(Math.pow(10, pair.quoteMint.decimals))
+          .toNumber(),
+      };
+    }),
   );
 };
 
@@ -360,15 +352,13 @@ export async function syncMeteoraPairs(
           .div(Math.pow(10, pair.mintY.decimals))
           .toNumber();
         const baseReserveAmountUsd = baseReserveAmount * tokenXPrice.price;
-        const quoteReserveAmountUsd = baseReserveAmount * tokenYPrice.price;
+        const quoteReserveAmountUsd = quoteReserveAmount * tokenYPrice.price;
 
         const transformedPairAccount = transformMeteoraPairAccount(pair);
 
         if (tokenXPrice && tokenYPrice) {
           return {
             syncAt: new Date(),
-            baseReserveAmount,
-            quoteReserveAmount,
             baseReserveAmountUsd,
             quoteReserveAmountUsd,
             id: pair.pubkey.toBase58(),
