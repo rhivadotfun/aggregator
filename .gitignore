@@ -6,3 +6,4 @@ docs/**
 .next
 .wrangler
 .env.prod
+docker-compose.yml
