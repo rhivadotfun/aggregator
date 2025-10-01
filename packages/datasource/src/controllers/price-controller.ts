@@ -1,7 +1,7 @@
 import xior from "xior";
 import { format } from "util";
 
-import { cacheResult, solanatracker } from "../instances";
+import { cacheResult, coingecko, solanatracker } from "../instances";
 import type { PriceTimestampData } from "@solana-tracker/data-api";
 
 export const priceFallback = async (mints: string[]) => {
@@ -26,10 +26,27 @@ export const getMultiplePrices = async (
       const prices: { id: string; price: number }[] = await priceFallback(
         mints,
       ).catch(() => []);
-      const unloaded: string[] =
+      let unloaded: string[] =
         prices.length > 0
           ? prices.filter((price) => price.price <= 0).map((price) => price.id)
           : mints;
+
+      if (unloaded.length > 0) {
+        const geckoPrices =
+          await coingecko.onchain.networks.tokens.multi.getAddresses(
+            unloaded.join(","),
+            { network: "solana" },
+          );
+        if (geckoPrices.data)
+          for (const price of geckoPrices.data)
+            if (price.id && price.attributes?.price_usd) {
+              prices.push({
+                id: price.id,
+                price: parseFloat(price.attributes.price_usd),
+              });
+              unloaded = unloaded.filter((id) => id !== price.id);
+            }
+      }
 
       if (unloaded.length > 0)
         prices.push(
