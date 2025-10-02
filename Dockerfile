@@ -41,18 +41,21 @@ WORKDIR /usr/src/app
 
 COPY --from=builder /usr/src/app/ .
 
-WORKDIR /usr/src/app/servers
 ENV HOST="0.0.0.0"
 ENV NODE_ENV=production
 
 FROM runtime as trpc 
-CMD ["bun", "trpc/src/index.ts"]
+WORKDIR /usr/src/app/servers/trpc
+CMD ["bun", "src/index.ts"]
 
 FROM runtime as tasks 
-CMD ["bun", "worker/src/tasks/index.ts"]
+WORKDIR /usr/src/app/servers/worker
+CMD ["bun", "src/tasks/index.ts"]
 
 FROM runtime as jobs
-CMD ["bun", "worker/src/jobs/index.ts"]
+WORKDIR /usr/src/app/servers/worker
+CMD ["bun", "src/jobs/index.ts"]
 
 FROM runtime as metrics 
-CMD ["bun", "metrics/src/index.ts"]
+WORKDIR /usr/src/app/servers/metrics
+CMD ["bun", "src/index.ts"]
