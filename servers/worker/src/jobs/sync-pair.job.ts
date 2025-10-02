@@ -47,5 +47,9 @@ export const syncPairWorker = new Worker(
   { connection: redis },
 );
 
-syncPairWorker.on("failed", (job) => logger.error(job, "job.failed"));
-syncPairWorker.on("completed", (job) => logger.info(job, "job.success"));
+syncPairWorker.on("failed", (job) =>
+  logger.error({ error: job?.failedReason, id: job?.id }, "job.failed"),
+);
+syncPairWorker.on("completed", (job) =>
+  logger.info({ id: job.id, result: job.returnvalue }, "job.success"),
+);

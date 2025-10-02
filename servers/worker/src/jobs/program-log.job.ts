@@ -147,5 +147,9 @@ export const programLogWorker = new Worker(
   },
 );
 
-programLogWorker.on("failed", (job) => logger.error(job, "job.failed"));
-programLogWorker.on("completed", (job) => logger.info(job, "job.success"));
+programLogWorker.on("failed", (job) =>
+  logger.error({ error: job?.failedReason, id: job?.id }, "job.failed"),
+);
+programLogWorker.on("completed", (job) =>
+  logger.info({ id: job.id, result: job.returnvalue }, "job.success"),
+);
