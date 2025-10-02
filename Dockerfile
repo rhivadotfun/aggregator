@@ -49,7 +49,7 @@ FROM runtime as trpc
 CMD ["bun", "trpc/src/index.ts"]
 
 FROM runtime as tasks 
-CMD ["bun", "worker/index.ts"]
+CMD ["bun", "worker/src/tasks/index.ts"]
 
 FROM runtime as jobs
 CMD ["bun", "worker/src/jobs/index.ts"]
