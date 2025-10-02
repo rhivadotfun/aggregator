@@ -1,7 +1,7 @@
 #!/bin/sh 
 set -e
 
-cat > docker-compose.yml <<EOF
+cat > docker-compose.yml << EOF
 services:
   trpc:
     image: rhiva-ag_trpc:latest

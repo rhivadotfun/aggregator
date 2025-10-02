@@ -1,7 +1,8 @@
-cat > docker-compose.yml <<EOF
+cat > docker-compose.yml << EOF
 services:
   trpc:
-    build: 
+    build:
+      context: .
       target: trpc
     ports:
       - "8000:8000"
@@ -13,7 +14,8 @@ services:
     env_file: .env
 
   tasks:
-    build: 
+    build:
+      context: .
       target: tasks
     restart: on-failure
     networks:
@@ -22,7 +24,8 @@ services:
     env_file: .env
 
   jobs:
-    build: 
+    build:
+      context: .
       target: jobs
     restart: on-failure
     depends_on:
@@ -33,7 +36,8 @@ services:
     env_file: .env
 
   metrics:
-    build: 
+    build:
+      context: .
       target: metrics
     restart: on-failure
     ports:
@@ -50,10 +54,10 @@ networks:
     driver: bridge
   redis:
     external: true
-  postgres: 
-    external: true 
-EOF 
+  postgres:
+    external: true
+EOF
 
-git pull 
-docker compose build 
+git pull
+docker compose build
 docker compose up -d
