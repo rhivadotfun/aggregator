@@ -4,7 +4,7 @@ import { format } from "util";
 
 type Env =
   | "REDIS_URL"
-  | "GECKO_API_KEY"
+  | "COINGECKO_API_KEY"
   | "SOLANA_TRACKER_API_KEY"
   | "DATABASE_URL";
 

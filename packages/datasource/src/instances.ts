@@ -14,5 +14,5 @@ export const solanatracker = new Client({
 });
 export const coingecko = new Coingecko({
   environment: "demo",
-  demoAPIKey: getEnv<string>("GECKO_API_KEY"),
+  demoAPIKey: getEnv<string>("COINGECKO_API_KEY"),
 });

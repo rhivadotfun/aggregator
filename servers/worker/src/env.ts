@@ -6,7 +6,7 @@ type Env =
   | "PORT"
   | "HOST"
   | "REDIS_URL"
-  | "GECKO_API_KEY"
+  | "COINGECKO_API_KEY"
   | "DATABASE_URL"
   | "SOLANA_TRACKER_API_KEY"
   | "RPC_URL";
