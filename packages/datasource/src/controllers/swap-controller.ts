@@ -43,5 +43,6 @@ export const createSwap = async (
         };
       }),
     )
+    .onConflictDoNothing({ target: [swaps.signature, swaps.instructionIndex] })
     .returning();
 };
