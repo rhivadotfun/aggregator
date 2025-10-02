@@ -142,9 +142,7 @@ export const programLogWorker = new Worker(
       }),
     );
   },
-  {
-    connection: redis,
-  },
+  { concurrency: 10, connection: redis },
 );
 
 programLogWorker.on("failed", (job) =>

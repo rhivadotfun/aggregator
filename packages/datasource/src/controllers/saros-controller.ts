@@ -207,8 +207,9 @@ export const createSarosSwap = async (
       const baseAmount = value.swapForY ? value.amountIn : value.amountOut;
       const quoteAmount = value.swapForY ? value.amountOut : value.amountIn;
 
-      const feeX = value.swapForY ? value.fee : new BN(0);
-      const feeY = value.swapForY ? new BN(0) : value.fee;
+      const [feeX, feeY] = value.swapForY
+        ? [value.fee, new BN(0)]
+        : [new BN(0), value.fee];
 
       return {
         signature,

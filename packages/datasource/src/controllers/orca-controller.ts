@@ -259,6 +259,10 @@ export const createOrcaSwap = async (
         ? swapEvent.outputAmount
         : swapEvent.inputAmount;
 
+      const [feeX, feeY] = swapEvent.aToB
+        ? [swapEvent.inputTransferFee, swapEvent.outputTransferFee]
+        : [swapEvent.outputTransferFee, swapEvent.inputTransferFee];
+
       return {
         signature,
         extra: {},
@@ -266,10 +270,10 @@ export const createOrcaSwap = async (
         instructionIndex: index,
         type: swapEvent.aToB ? ("sell" as const) : ("buy" as const),
         pair: swapEvent.whirlpool.toBase58(),
-        feeX: new Decimal(swapEvent.inputTransferFee.toString())
+        feeX: new Decimal(feeX.toString())
           .div(Math.pow(10, pair.baseMint.decimals))
           .toNumber(),
-        feeY: new Decimal(swapEvent.outputTransferFee.toString())
+        feeY: new Decimal(feeY.toString())
           .div(Math.pow(10, pair.quoteMint.decimals))
           .toNumber(),
         baseAmount: new Decimal(baseAmount.toString())

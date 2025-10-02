@@ -44,7 +44,7 @@ export const syncPairWorker = new Worker(
       }
     }
   },
-  { connection: redis },
+  { connection: redis, concurrency: 10 },
 );
 
 syncPairWorker.on("failed", (job) =>

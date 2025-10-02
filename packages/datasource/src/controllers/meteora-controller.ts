@@ -232,8 +232,9 @@ export const createMeteoraSwap = async (
       const quoteAmount = swapEvent.swapForY
         ? swapEvent.amountOut
         : swapEvent.amountIn;
-      const feeX = swapEvent.swapForY ? swapEvent.fee : new BN(0);
-      const feeY = swapEvent.swapForY ? new BN(0) : swapEvent.fee;
+      const [feeX, feeY] = swapEvent.swapForY
+        ? [swapEvent.fee, new BN(0)]
+        : [new BN(0), swapEvent.fee];
 
       return {
         signature,
