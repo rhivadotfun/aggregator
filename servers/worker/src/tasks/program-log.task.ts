@@ -5,7 +5,7 @@ import { connection, logger, redis } from "../instances";
 
 const queue = new Queue("programLog", {
   connection: redis.options,
-  defaultJobOptions: { removeOnComplete: true, removeOnFail: true },
+  defaultJobOptions: { removeOnComplete: true, removeOnFail: false },
 });
 
 export const runProgramLogTask = (programs: web3.PublicKey[]) => {

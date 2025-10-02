@@ -10,7 +10,7 @@ import {
   type pairSelectSchema,
 } from "@rhiva-ag/datasource";
 
-import { db, connection, redis } from "../instances";
+import { db, connection, redis, logger } from "../instances";
 
 type SyncPairJobData = {
   offset: number;
@@ -46,3 +46,6 @@ export const syncPairWorker = new Worker(
   },
   { connection: redis },
 );
+
+syncPairWorker.on("failed", (job) => logger.error(job, "job.failed"));
+syncPairWorker.on("completed", (job) => logger.info(job, "job.success"));
