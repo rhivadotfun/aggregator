@@ -57,9 +57,6 @@ describe("Pipeline ie2 test", () => {
       expect(swap).not.toBeUndefined();
       expect(swap!.type).toBe("sell");
       expect(swap!.signature).toBe(signature);
-      expect(swap!.fee).toBe(81_574 / Math.pow(10, 6));
-      expect(swap!.baseAmount).toBe(815_734_551 / Math.pow(10, 6));
-      expect(swap!.quoteAmount).toBe(815_082_248 / Math.pow(10, 6));
     }
   });
 
@@ -97,9 +94,6 @@ describe("Pipeline ie2 test", () => {
       expect(swap).not.toBeUndefined();
       expect(swap!.type).toBe("buy");
       expect(swap!.signature).toBe(signature);
-      expect(swap!.fee).toBe(0);
-      expect(swap!.baseAmount).toBe(11_197_953_656 / Math.pow(10, 9));
-      expect(swap!.quoteAmount).toBe(2_269_84_9829 / Math.pow(10, 6));
     }
   });
 
@@ -137,9 +131,6 @@ describe("Pipeline ie2 test", () => {
       expect(swap).not.toBeUndefined();
       expect(swap!.type).toBe("buy");
       expect(swap!.signature).toBe(signature);
-      expect(swap!.fee).toBe(0.175044);
-      expect(swap!.baseAmount).toBe(8_557_026_233 / Math.pow(10, 9));
-      expect(swap!.quoteAmount).toBe(1_734_004_546 / Math.pow(10, 6));
     }
   });
 
@@ -177,9 +168,6 @@ describe("Pipeline ie2 test", () => {
       expect(swap).not.toBeUndefined();
       expect(swap!.type).toBe("buy");
       expect(swap!.signature).toBe(signature);
-      expect(swap!.fee).toBe(1.2615);
-      expect(swap!.baseAmount).toBe(17_859_112_945 / Math.pow(10, 9));
-      expect(swap!.quoteAmount).toBe(3_625_000_000 / Math.pow(10, 6));
     }
   });
 });

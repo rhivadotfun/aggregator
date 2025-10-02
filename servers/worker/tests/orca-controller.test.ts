@@ -27,18 +27,4 @@ describe("Orca Controller", () => {
     expect(pool.dynamicFee).toBeGreaterThanOrEqual(0.04);
     expect(pool.protocolFee).toBeGreaterThanOrEqual(0.005);
   });
-
-  // test("should pass transformMeteoraPairAccount", async () => {
-  //   const poolState = await program.account.lbPair.fetch(
-  //     "7q1BaMsFikgMJBMmmzF4nD9mxE6agFASnxGGq58LVd43",
-  //   );
-
-  //   const pool = transformMeteoraPairAccount(poolState);
-
-  //   expect(pool.binStep).toBe(5);
-  //   expect(pool.baseFee).toBe(0.02);
-  //   expect(pool.maxFee).toBe(10);
-  //   expect(pool.dynamicFee).toBeGreaterThanOrEqual(0.02);
-  //   expect(pool.protocolFee).toBeGreaterThanOrEqual(0.001);
-  // });
 });
