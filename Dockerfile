@@ -34,6 +34,7 @@ RUN --mount=type=cache,target=/root/.bun/cache\
     bun install --frozen-lockfine
 
 COPY --from=codegen /usr/src/app/out/full . 
+COPY --from=codegen /usr/src/app/servers/ecosystem.config.js servers/ecosystem.config.js
 RUN bun x turbo check
 
 FROM base as runtime
