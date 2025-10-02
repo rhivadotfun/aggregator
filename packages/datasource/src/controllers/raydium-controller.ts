@@ -250,6 +250,10 @@ export const createRaydiumV3Swap = async (
         ? swapEvent.amount0
         : swapEvent.amount1;
 
+      const [feeX, feeY] = swapEvent.zeroForOne
+        ? [swapEvent.transferFee0, swapEvent.transferFee1]
+        : [swapEvent.transferFee1, swapEvent.transferFee0];
+
       return {
         signature,
         extra: {},
@@ -257,10 +261,10 @@ export const createRaydiumV3Swap = async (
         instructionIndex: index,
         pair: swapEvent.poolState.toBase58(),
         type: swapEvent.zeroForOne ? ("sell" as const) : ("buy" as const),
-        feeX: new Decimal(swapEvent.transferFee0.toString())
+        feeX: new Decimal(feeX.toString())
           .div(Math.pow(10, pair.baseMint.decimals))
           .toNumber(),
-        feeY: new Decimal(swapEvent.transferFee1.toString())
+        feeY: new Decimal(feeY.toString())
           .div(Math.pow(10, pair.quoteMint.decimals))
           .toNumber(),
         baseAmount: new Decimal(baseAmount.toString())
