@@ -44,6 +44,10 @@ COPY --from=builder /usr/src/app/ .
 ENV HOST="0.0.0.0"
 ENV NODE_ENV=production
 
+FROM runtime as dev
+WORKDIR /usr/src/app/servers
+CMD ["bun", "x", "pm2-runtime", "start", "ecosystem.config.js"]
+
 FROM runtime as trpc 
 WORKDIR /usr/src/app/servers/trpc
 CMD ["bun", "src/index.ts"]
