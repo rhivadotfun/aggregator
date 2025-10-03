@@ -10,7 +10,7 @@ export async function getPairs(
     orderBy?: SQL<unknown>[];
   },
 ) {
-  return db.query.pairs.findMany({
+  const query = db.query.pairs.findMany({
     ...options,
     with: {
       base_token: true,
@@ -21,4 +21,7 @@ export async function getPairs(
       quote_token: false,
     },
   });
+  console.log(query.toSQL().sql);
+
+  return query.execute();
 }

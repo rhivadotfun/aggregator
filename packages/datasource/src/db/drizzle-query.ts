@@ -124,7 +124,8 @@ export const buildOrderByClauseFromObject = <
   orderBy: T,
 ) => {
   const query: SQL<unknown>[] = [];
-  if (Array.isArray(orderBy)) return orderBy.map((value) => asc(sql`${value}`));
+  if (Array.isArray(orderBy))
+    return orderBy.map((value) => desc(sql.raw(format('"%s"', value))));
 
   for (const [value, opName] of Object.entries(orderBy)) {
     if (opName in mapOrderByOperators) {

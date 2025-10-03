@@ -34,6 +34,7 @@ export default function PoolList({ pools = [], limit, chart }: PoolListProps) {
         ...args,
         limit,
         offset: pageParam,
+        orderBy: ["fees24h"],
         filter: {
           market: { eq: "saros" },
           ...args?.filter,
