@@ -1,9 +1,9 @@
 import z from "zod";
 import { TRPCError } from "@trpc/server";
 
+import { pnlSchema } from "./pnl.schema";
 import { getSarosPNL } from "../../utils/pnl";
 import { publicProcedure, router } from "../../trpc";
-import { pnlSchema } from "./pnl.schema";
 
 export const pnlRoute = router({
   retrieve: publicProcedure
