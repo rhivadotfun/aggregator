@@ -6,7 +6,14 @@ import Coingecko from "@coingecko/coingecko-typescript";
 
 import { getEnv } from "./env";
 
-export const redis = new Redis(getEnv("REDIS_URL"), {
+export const redis = new Redis({
+  sentinels: [
+    { host: getEnv<string>("REDIS_HOSTNAME"), port: 26379 },
+    { host: getEnv<string>("REDIS_HOSTNAME"), port: 26380 },
+    { host: getEnv<string>("REDIS_HOSTNAME"), port: 26381 },
+    { host: getEnv<string>("REDIS_HOSTNAME"), port: 26382 },
+  ],
+  name: getEnv<string>("REDIS_MASTER"),
   maxRetriesPerRequest: null,
 });
 export const db = createDB(getEnv("DATABASE_URL"));

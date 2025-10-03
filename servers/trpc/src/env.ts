@@ -6,11 +6,13 @@ type Env =
   | "PORT"
   | "HOST"
   | "ORIGIN"
-  | "RPC_URL"
+  | "REDIS_HOSTNAME"
+  | "REDIS_MASTER"
   | "REDIS_URL"
   | "DATABASE_URL"
   | "COINGECKO_API_KEY"
-  | "SOLANA_TRACKER_API_KEY";
+  | "SOLANA_TRACKER_API_KEY"
+  | "RPC_URL";
 
 export const getEnv = <T extends object | number | string | null = string>(
   name: Env,
