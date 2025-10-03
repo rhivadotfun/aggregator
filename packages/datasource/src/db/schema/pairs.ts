@@ -1,5 +1,6 @@
 import {
   doublePrecision,
+  integer,
   jsonb,
   pgTable,
   text,
@@ -7,39 +8,56 @@ import {
 } from "drizzle-orm/pg-core";
 import { mints } from "./mints";
 
-type Extra = Record<string, unknown>;
+type Transaction = {
+  buys: number;
+  sells: number;
+  buyers: number;
+  sellers: number;
+};
+
+type Extra = {
+  price_change_percentage: {
+    m5: number;
+    m15: number;
+    m30: number;
+    h1: number;
+    h6: number;
+    h24: number;
+  };
+  transactions: {
+    m5: Transaction;
+    m15: Transaction;
+    m30: Transaction;
+    h1: Transaction;
+    h6: Transaction;
+    h24: Transaction;
+  };
+  volume_usd: {
+    m5: number;
+    m15: number;
+    m30: number;
+    h1: number;
+    h6: number;
+    h24: number;
+  };
+};
 
 export const pairs = pgTable("pairs", {
-  id: text().primaryKey(),
   name: text().notNull(),
+  market: text({ enum: ["saros"] }).notNull(),
+  address: text().primaryKey(),
+  fees24h: doublePrecision().notNull(),
+  base_fee: doublePrecision().notNull(),
+  bin_step: integer().notNull(),
+  reserve_in_usd: doublePrecision().notNull(),
   extra: jsonb().$type<Extra>().notNull(),
-  quoteMint: text()
-    .references(() => mints.id)
+  fdv_usd: doublePrecision().notNull(),
+  market_cap_usd: doublePrecision().notNull(),
+  pool_created_at: timestamp({ withTimezone: true }).notNull(),
+  base_token: text()
+    .references(() => mints.address)
     .notNull(),
-  baseMint: text()
-    .references(() => mints.id)
+  quote_token: text()
+    .references(() => mints.address)
     .notNull(),
-  binStep: doublePrecision().notNull(),
-  baseFee: doublePrecision().notNull(),
-  maxFee: doublePrecision().notNull(),
-  protocolFee: doublePrecision().notNull(),
-  dynamicFee: doublePrecision().notNull(),
-  liquidity: doublePrecision().notNull(),
-  baseReserveAmountUsd: doublePrecision().notNull(),
-  quoteReserveAmountUsd: doublePrecision().notNull(),
-  syncAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
-  createdAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
-  market: text({ enum: ["meteora", "orca", "raydium", "saros"] }).notNull(),
-});
-
-export const pairAggregrates = pgTable("pairAggregates", {
-  pair: text()
-    .references(() => pairs.id)
-    .notNull(),
-  end: timestamp({ withTimezone: true }).notNull(),
-  start: timestamp({ withTimezone: true }).notNull(),
-  fee: doublePrecision().notNull(),
-  buyVolume: doublePrecision().notNull(),
-  sellVolume: doublePrecision().notNull(),
-  price: doublePrecision().notNull(),
 });

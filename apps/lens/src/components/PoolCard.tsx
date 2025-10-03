@@ -3,7 +3,7 @@ import Link from "next/link";
 import { format } from "util";
 import Image from "next/image";
 import { useCallback, useMemo } from "react";
-import type { pairAggregateSchema } from "@rhiva-ag/trpc";
+import type { pairSelectSchema } from "@rhiva-ag/datasource";
 
 import Money from "./Money";
 import Decimal from "./Decimal";
@@ -16,7 +16,7 @@ import Dexscreener from "../assets/dex.png";
 export default function PoolCard({
   pair,
 }: {
-  pair: z.infer<typeof pairAggregateSchema>;
+  pair: z.infer<typeof pairSelectSchema>;
 }) {
   const links = [
     {
@@ -24,33 +24,33 @@ export default function PoolCard({
       name: "birdeye",
       link: format(
         "https://birdeye.so/solana/token/%s/%s",
-        pair.baseMint.id,
-        pair.id,
+        pair.base_token.address,
+        pair.address,
       ),
     },
     {
       image: Saros,
       name: "saros",
-      link: format("https://dlmm.saros.xyz/pool/%s", pair.id),
+      link: format("https://dlmm.saros.xyz/pool/%s", pair.address),
     },
     {
       image: Dexscreener,
       name: "dexscreener",
-      link: format("https://dexscreener.com/solana/%s", pair.id),
+      link: format("https://dexscreener.com/solana/%s", pair.address),
     },
     {
       image: Jupiter,
       name: "jupiter",
       link: format(
         "https://jup.ag/swap?sell=%s&buy=%s",
-        pair.baseMint.id,
-        pair.quoteMint.id,
+        pair.base_token.address,
+        pair.quote_token.address,
       ),
     },
     {
       image: Photon,
       name: "photon",
-      link: format("https://photon-sol.tinyastro.io/en/lp/%s", pair.id),
+      link: format("https://photon-sol.tinyastro.io/en/lp/%s", pair.address),
     },
   ];
 
@@ -60,56 +60,74 @@ export default function PoolCard({
   }, []);
 
   const H24FeeTVLRatio = useMemo(
-    () => calculateFeeTVLRatio(pair.H24.fees, pair.H24.tvl),
+    () => calculateFeeTVLRatio(pair.fees24h, pair.reserve_in_usd),
     [pair, calculateFeeTVLRatio],
   );
 
   const poolTxChanges = useMemo(
     () => [
-      { name: "5m", buyCount: pair.M5.buyCount, sellCount: pair.M5.sellCount },
-      { name: "1h", buyCount: pair.H1.buyCount, sellCount: pair.H1.sellCount },
-      { name: "6h", buyCount: pair.H6.buyCount, sellCount: pair.H6.sellCount },
+      {
+        name: "5m",
+        buyCount: pair.extra.transactions.m5?.buys,
+        sellCount: pair.extra.transactions.m5?.sells,
+        priceChange: pair.extra.price_change_percentage.m5,
+      },
+      {
+        name: "15m",
+        buyCount: pair.extra.transactions.m30?.buys,
+        sellCount: pair.extra.transactions.m15?.sells,
+        priceChange: pair.extra.price_change_percentage.m15,
+      },
+      {
+        name: "30m",
+        buyCount: pair.extra.transactions.m30?.buys,
+        sellCount: pair.extra.transactions.m30?.sells,
+        priceChange: pair.extra.price_change_percentage.m30,
+      },
+      {
+        name: "1h",
+        buyCount: pair.extra.transactions.h1?.buys,
+        sellCount: pair.extra.transactions.h1?.sells,
+        priceChange: pair.extra.price_change_percentage.h1,
+      },
       {
         name: "24h",
-        buyCount: pair.H24.buyCount,
-        sellCount: pair.H24.sellCount,
+        buyCount: pair.extra.transactions.h24?.buys,
+        sellCount: pair.extra.transactions.h24?.sells,
+        priceChange: pair.extra.price_change_percentage.h24,
       },
     ],
-    [pair],
+    [pair.extra.transactions, pair.extra.price_change_percentage],
   );
 
   const poolFlowChanges = useMemo(
     () => [
       {
         name: "5m",
-        volume: pair.M5.volume,
-        tvl: pair.M5.tvl,
-        fees: pair.M5.fees,
-        tvlFeeRatio: calculateFeeTVLRatio(pair.M5.tvl, pair.M5.fees),
+        volume: pair.extra.volume_usd.m5,
+      },
+      {
+        name: "15m",
+        volume: pair.extra.volume_usd.m15,
+      },
+      {
+        name: "30m",
+        volume: pair.extra.volume_usd.m30,
       },
       {
         name: "1h",
-        volume: pair.H1.volume,
-        tvl: pair.H1.tvl,
-        fees: pair.H1.fees,
-        tvlFeeRatio: calculateFeeTVLRatio(pair.H1.tvl, pair.H1.fees),
+        volume: pair.extra.volume_usd.h1,
       },
       {
         name: "6h",
-        volume: pair.H6.volume,
-        tvl: pair.H6.tvl,
-        fees: pair.H6.fees,
-        tvlFeeRatio: calculateFeeTVLRatio(pair.H6.tvl, pair.H6.fees),
+        volume: pair.extra.volume_usd.h6,
       },
       {
         name: "24h",
-        volume: pair.H24.volume,
-        tvl: pair.H24.tvl,
-        fees: pair.H24.fees,
-        tvlFeeRatio: calculateFeeTVLRatio(pair.H24.tvl, pair.H24.fees),
+        volume: pair.extra.volume_usd.h24,
       },
     ],
-    [pair, calculateFeeTVLRatio],
+    [pair.extra.volume_usd],
   );
 
   return (
@@ -136,20 +154,17 @@ export default function PoolCard({
         <div className="flex-1">
           <p>{pair.name}</p>
           <div className="flex items-center gap-x-2">
-            <span className=" text-gray/50">Today's Fees</span>
-            <Money value={pair.H24?.fees} />
+            <span className=" text-gray/50">TVL</span>
+            <Money value={pair.reserve_in_usd} />
           </div>
+          <div className="flex items-center gap-x-2">
+            <span className=" text-gray/50">FDV</span>
+            <Money value={pair.fdv_usd} />
+          </div>
+
           <div className="flex items-center gap-x-2">
             <span className=" text-gray/50">24h Fees</span>
-            <Money value={pair.H24?.fees} />
-          </div>
-          <div className="flex items-center gap-x-2">
-            <span className=" text-gray/50">TVL</span>
-            <Money value={pair.liquidity} />
-          </div>
-          <div className="flex items-center gap-x-2">
-            <span className=" text-gray/50">Volume 24h</span>
-            <Money value={pair.H24?.volume} />
+            <Money value={pair.fees24h} />
           </div>
         </div>
         <div className="flex flex-col items-end space-y-1">
@@ -163,18 +178,18 @@ export default function PoolCard({
         <div className="flex py-2">
           <div>
             <span className="text-gray/50">Bin step: </span>
-            <span className="ml-auto">{pair.binStep}</span>
+            <span className="ml-auto">{pair.bin_step}</span>
           </div>
           <div className="ml-auto">
             <span className="text-gray/50">Base Fee: </span>
-            <span className="ml-auto">{pair.baseFee}%</span>
+            <span className="ml-auto">{pair.base_fee}%</span>
           </div>
         </div>
         <div className="flex py-2">
           <p className="text-gray/50">Market Cap</p>
           <Money
             className="ml-auto"
-            value={pair.liquidity}
+            value={pair.market_cap_usd}
           />
         </div>
         <div>
@@ -182,33 +197,43 @@ export default function PoolCard({
             <thead>
               <tr className="text-gray/50">
                 <th className="text-start">Time</th>
-                <th className="text-start invisible">Price Change</th>
+                <th className="text-start">Price Change</th>
                 <th className="text-end">Transactions</th>
               </tr>
             </thead>
             <tbody>
-              {poolTxChanges.map(({ name, buyCount, sellCount }) => (
-                <tr key={name}>
-                  <td className="text-gray/50">{name}</td>
-                  <td className="invisible">-25%</td>
-                  <td>
-                    <div className="flex items-center justify-end space-x-2">
+              {poolTxChanges.map(
+                ({ name, buyCount, sellCount, priceChange }) => (
+                  <tr key={name}>
+                    <td className="text-gray/50">{name}</td>
+                    <td>
                       <Decimal
-                        compact
-                        hideSign
-                        value={buyCount}
-                        className="w-16 px-4  bg-green-500/10 text-green text-center rounded-sm"
+                        showPositiveSign
+                        value={priceChange}
+                        className={
+                          priceChange > -1 ? "text-green-500" : "text-red-500"
+                        }
                       />
-                      <Decimal
-                        hideSign
-                        compact
-                        value={sellCount}
-                        className="w-16 px-4 bg-red-500/10 text-red text-center rounded-sm"
-                      />
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                    <td>
+                      <div className="flex items-center justify-end space-x-2">
+                        <Decimal
+                          compact
+                          hideSign
+                          value={buyCount}
+                          className="w-16 px-4  bg-green-500/10 text-green text-center rounded-sm"
+                        />
+                        <Decimal
+                          hideSign
+                          compact
+                          value={sellCount}
+                          className="w-16 px-4 bg-red-500/10 text-red text-center rounded-sm"
+                        />
+                      </div>
+                    </td>
+                  </tr>
+                ),
+              )}
             </tbody>
           </table>
         </div>
@@ -217,27 +242,15 @@ export default function PoolCard({
             <thead className="text-gray/50">
               <tr>
                 <th className="text-start">Time</th>
-                <th className="text-start">Volume</th>
-                <th className="text-end">Fees/TVL Ratio</th>
+                <th className="text-end">Volume</th>
               </tr>
             </thead>
             <tbody>
-              {poolFlowChanges.map(({ name, volume, fees, tvlFeeRatio }) => (
+              {poolFlowChanges.map(({ name, volume }) => (
                 <tr key={name}>
                   <td className="text-gray/50">{name}</td>
-                  <td>
+                  <td className="text-end">
                     <Money value={volume} />
-                  </td>
-                  <td className="flex items-center justify-end space-x-2">
-                    <p>
-                      <Money value={fees} />
-                    </p>
-                    <Decimal
-                      value={tvlFeeRatio}
-                      end="%"
-                      cap={999}
-                      className="w-16 bg-blue-500/10 text-blue text-center rounded-sm"
-                    />
                   </td>
                 </tr>
               ))}

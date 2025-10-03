@@ -24,6 +24,7 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@coingecko/coingecko-typescript": "^2.0.0",
     "@coral-xyz/anchor": "^0.31.1",
     "@fastify/cors": "^11.1.0",
     "@fastify/rate-limit": "^10.3.0",
@@ -32,7 +33,9 @@
     "@rhiva-ag/env": "*",
     "@rhiva-ag/shared": "*",
     "@solana-tracker/data-api": "^0.1.4",
+    "@solana/web3.js": "^1.98.4",
     "@trpc/server": "^11.6.0",
+    "assert": "^2.1.0",
     "drizzle-orm": "^0.44.5",
     "fastify": "^5.6.1",
     "moment": "^2.30.1",

@@ -1,55 +1,43 @@
 import z from "zod";
-import { and, or, type SQL } from "drizzle-orm";
+import { and, or } from "drizzle-orm";
 import {
   buildDrizzleWhereClauseFromObject,
   buildOrderByClauseFromObject,
 } from "@rhiva-ag/datasource";
 
+import { getPairs } from "./pair.controller";
 import { publicProcedure, router } from "../../trpc";
-import { getAggregratedPairs } from "./pair.controller";
 import {
-  pairAggregateSchema,
   pairFilterSchema,
-  pairSearchSchema,
   pairOrderBySchema,
+  pairSearchSchema,
 } from "./pair.schema";
 
 export const pairRoute = router({
-  aggregrate: publicProcedure
+  list: publicProcedure
     .input(
       z
         .object({
-          limit: z.number().optional(),
-          offset: z.number().optional(),
+          limit: z.number(),
+          offset: z.number(),
+        })
+        .extend({
           orderBy: pairOrderBySchema.optional(),
           filter: pairFilterSchema.partial().optional(),
           search: pairSearchSchema.partial().optional(),
-        })
-        .optional(),
+        }),
     )
-    .output(z.array(pairAggregateSchema))
     .query(async ({ ctx, input }) => {
-      let where: SQL<unknown> | undefined;
-      let orderBy: SQL<unknown>[] | undefined;
+      const where = [];
+      const orderBy = [];
 
-      if (input) {
-        if (input.orderBy)
-          orderBy = buildOrderByClauseFromObject(input.orderBy);
-        if (input.filter)
-          where = and(...buildDrizzleWhereClauseFromObject(input.filter));
-        if (input.search)
-          where = and(
-            where,
-            or(...buildDrizzleWhereClauseFromObject(input.search)),
-          );
-      }
+      if (input.filter)
+        where.push(and(...buildDrizzleWhereClauseFromObject(input.filter)));
+      if (input.search)
+        where.push(or(...buildDrizzleWhereClauseFromObject(input.search)));
+      if (input.orderBy)
+        orderBy.push(...buildOrderByClauseFromObject(input.orderBy));
 
-      return getAggregratedPairs(ctx.drizzle, {
-        where,
-        orderBy,
-        limit: input?.limit,
-        offset: input?.offset,
-      });
+      return getPairs(ctx.drizzle, { where: and(...where), orderBy });
     }),
-  list: publicProcedure.query(() => 1),
 });

@@ -1,34 +1,42 @@
-import { and } from "drizzle-orm";
+import type { z } from "zod/mini";
+import { and, or } from "drizzle-orm";
 import { describe, test, expect } from "bun:test";
-import {
-  buildDrizzleWhereClauseFromObject,
-  buildOrderByClauseFromObject,
-} from "@rhiva-ag/datasource";
+import { buildDrizzleWhereClauseFromObject } from "@rhiva-ag/datasource";
 
 import { db } from "../src/instances";
-import { getAggregratedPairs } from "../src/routes/pairs/pair.controller";
-import {
+import { getPairs } from "../src/routes/pairs/pair.controller";
+import type {
   pairFilterSchema,
-  pairOrderBySchema,
+  pairSearchSchema,
 } from "../src/routes/pairs/pair.schema";
 
 describe("pair.controller", () => {
-  test("should pass pair aggregrate", async () => {
-    const where = buildDrizzleWhereClauseFromObject(
-      pairFilterSchema.partial().parse({
-        market: { eq: "saros" },
-      }),
-    );
+  test("should pass getSarosPools", async () => {
+    const where: Partial<z.infer<typeof pairFilterSchema>> = {
+      market: { eq: "saros" },
+    };
 
-    const orderBy = buildOrderByClauseFromObject(
-      pairOrderBySchema.parse(["H24SwapsVolumeUsd"]),
-    );
-    const pairs = await getAggregratedPairs(db, {
-      where: and(...where),
-      orderBy,
+    const search: Partial<z.infer<typeof pairSearchSchema>> = {
+      name: { ilike: "" },
+    };
+
+    const pools = await getPairs(db, {
+      where: and(
+        ...buildDrizzleWhereClauseFromObject(where),
+        or(...buildDrizzleWhereClauseFromObject(search)),
+      ),
     });
 
-    console.log(pairs);
-    expect(pairs).toBeArray();
+    expect(pools).toBeArray();
+    for (const pool of pools) {
+      expect(pool).toContainKeys([
+        "base_token",
+        "quote_token",
+        "bin_step",
+        "reserve_in_usd",
+        "market_cap_usd",
+        "fees24h",
+      ]);
+    }
   });
 });

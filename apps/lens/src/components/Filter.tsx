@@ -22,49 +22,44 @@ export default function Filter({ onChangeAction }: FilterProps) {
       validateOnBlur
       validateOnChange
       initialValues={{
-        orderBy: "H24SwapsVolumeUsd" as const,
-        volume: {
+        orderBy: "fees24h" as const,
+        fdv_usd: {
           min: undefined,
           max: undefined,
         },
-        liquidity: {
+        market_cap_usd: {
           max: undefined,
           min: undefined,
         },
-        binStep: {
+        bin_step: {
           max: undefined,
           min: undefined,
         },
-        baseFee: {
+        base_fee: {
           max: undefined,
           min: undefined,
         },
       }}
       validationSchema={object({
         orderBy: string().oneOf([
-          "H24SwapsVolumeUsd",
-          "M5SwapsFeeUsd",
-          "H1SwapsFeeUsd",
-          "h6SwapsFeeUsd",
-          "H24SwapsFeeUsd",
-          "totalFee",
-          "baseFee",
-          "dynamicFee",
-          "protocolfee",
+          "fdv_usd",
+          "market_cap_usd",
+          "reserve_in_usd",
+          "fees24h",
         ]),
-        binStep: object({
+        bin_step: object({
           min: number().optional(),
           max: number().optional(),
         }),
-        baseFee: object({
+        base_fee: object({
           min: number().optional(),
           max: number().optional(),
         }),
-        liquidity: object({
+        market_cap_usd: object({
           min: number().optional(),
           max: number().optional(),
         }),
-        volume: object({
+        fdv_usd: object({
           min: number().optional(),
           max: number().optional(),
         }),
@@ -91,8 +86,6 @@ export default function Filter({ onChangeAction }: FilterProps) {
     >
       <Form className="flex flex-col space-y-4">
         <div className="flex lt-md:flex-col lt-md:space-y-2 md:gap-x-8 md:gap-y-2 md:items-center md:flex-wrap">
-          <Top100Filter />
-          <SortByFilter />
           <TVLFilter />
         </div>
         <FieldFilter />
@@ -102,75 +95,9 @@ export default function Filter({ onChangeAction }: FilterProps) {
   );
 }
 
-function Top100Filter() {
-  const top100Labels = [
-    { label: "Show All" },
-    { label: "Fees>=1%" },
-    { label: "Fees>=2%" },
-    { label: "Fees>=5%" },
-  ];
-  return (
-    <div className="flex flex-col space-y-2">
-      <p>Top 100 Pools by Today's Fees</p>
-      <div className="flex flex-wrap space-x-2 md:space-x-4 md:gap-y-2 md:flex-nowrap">
-        {top100Labels.map(({ label }) => (
-          <button
-            key={label}
-            type="button"
-            className="flex-1  bg-gray/10 text-white/50 px-2 py-1 rounded-md lt-md:max-w-24 md:min-w-32"
-          >
-            {label}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function SortByFilter() {
-  const feesLabels = [
-    { label: "5M", value: "M5SwapsFeeUsd" },
-    { label: "1H", value: "1HSwapsFeeUsd" },
-    { label: "6H", value: "6HSwapsFeeUsd" },
-    { label: "24H", value: "24HSwapsFeeUsd" },
-  ];
-
-  const { values, setFieldValue } = useFormikContext<{
-    orderBy: (typeof feesLabels)[number]["value"];
-  }>();
-
-  return (
-    <div className="flex flex-col space-y-2">
-      <p>Sort By Fees</p>
-      <div className="flex space-x-2 md:space-x-4 lt-md:flex-wrap md:gap-y-2">
-        {feesLabels.map(({ label, value }) => {
-          const selected = values.orderBy === value;
-
-          return (
-            <button
-              key={label}
-              type="button"
-              className={clsx(
-                "flex-1 px-2 py-1 rounded-md lt-md:max-w-24 md:min-w-32",
-                selected ? "bg-primary text-black" : "bg-gray/10 text-white/50",
-              )}
-              onClick={() => {
-                if (selected) setFieldValue("orderBy", "volume");
-                else setFieldValue("orderBy", value);
-              }}
-            >
-              {label}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
 function TVLFilter() {
   const { errors, touched } = useFormikContext<{
-    liquidity: { max: number; min: number };
+    market_cap_usd: { max: number; min: number };
   }>();
 
   return (
@@ -184,7 +111,9 @@ function TVLFilter() {
           placeholder="Min Liquidity"
           className={clsx(
             "md:min-w-32",
-            touched.liquidity?.min && errors.liquidity?.min && "error",
+            touched.market_cap_usd?.min &&
+              errors.market_cap_usd?.min &&
+              "error",
           )}
         />
         <Field
@@ -194,7 +123,9 @@ function TVLFilter() {
           placeholder="Max Liquidity"
           className={clsx(
             "md:min-w-32",
-            touched.liquidity?.max && errors.liquidity?.max && "error",
+            touched.market_cap_usd?.max &&
+              errors.market_cap_usd?.max &&
+              "error",
           )}
         />
       </div>
@@ -205,10 +136,9 @@ function TVLFilter() {
 function FieldFilter() {
   const [showGeneratePnLModal, setShowGeneratePnLModal] = useState(false);
   const { errors, touched } = useFormikContext<{
-    tvl: { min: number; max: number };
-    binStep: { min: number; max: number };
-    baseFee: { min: number; max: number };
-    liquidity: { min: number; max: number };
+    fdv_usd: { min: number; max: number };
+    bin_step: { min: number; max: number };
+    base_fee: { min: number; max: number };
   }>();
 
   return (
@@ -219,62 +149,62 @@ function FieldFilter() {
           <div className="flex flex-wrap gap-2 lt-md:grid lt-md:grid-cols-3 md:gap-x-4">
             <Field
               inputMode="decimal"
-              name="binStep.min"
+              name="bin_step.min"
               autoComplete="off"
               placeholder="Min Bin Step"
               className={clsx(
                 "md:min-w-32",
-                touched.binStep?.min && errors.binStep?.min && "error",
+                touched.bin_step?.min && errors.bin_step?.min && "error",
               )}
             />
             <Field
               inputMode="decimal"
-              name="binStep.max"
+              name="bin_step.max"
               autoComplete="off"
               placeholder="Max Bin Step"
               className={clsx(
                 "md:min-w-32",
-                touched.binStep?.max && errors.binStep?.max && "error",
+                touched.bin_step?.max && errors.bin_step?.max && "error",
               )}
             />
             <Field
               inputMode="decimal"
-              name="baseFee.min"
+              name="base_fee.min"
               autoComplete="off"
               placeholder="Min Base Fee"
               className={clsx(
                 "md:min-w-32",
-                touched.baseFee?.min && errors.baseFee?.min && "error",
+                touched.base_fee?.min && errors.base_fee?.min && "error",
               )}
             />
             <Field
               inputMode="decimal"
-              name="baseFee.max"
+              name="base_fee.max"
               autoComplete="off"
               placeholder="Max Base Fee"
               className={clsx(
                 "md:min-w-32",
-                touched.baseFee?.max && errors.baseFee?.max && "error",
+                touched.base_fee?.max && errors.base_fee?.max && "error",
               )}
             />
             <Field
               inputMode="decimal"
-              name="volume.min"
+              name="fdv_usd.min"
               autoComplete="off"
-              placeholder="Min Volume"
+              placeholder="Min FDV"
               className={clsx(
                 "md:min-w-32",
-                touched.tvl?.min && errors.tvl?.min && "error",
+                touched.fdv_usd?.min && errors.fdv_usd?.min && "error",
               )}
             />
             <Field
               inputMode="decimal"
-              name="volume.max"
+              name="fdv_usd.max"
               autoComplete="off"
-              placeholder="Max Volume"
+              placeholder="Max FDV"
               className={clsx(
                 "md:min-w-32",
-                touched.tvl?.max && errors.tvl?.max && "error",
+                touched.fdv_usd?.max && errors.fdv_usd?.max && "error",
               )}
             />
           </div>

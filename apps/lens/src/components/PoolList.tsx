@@ -1,31 +1,28 @@
 "use client";
-
 import type z from "zod";
+import { format } from "util";
 import type { Chart } from "@rhiva-ag/dex-api";
-import InfiniteScroll from "react-infinite-scroll-component";
 import { useCallback, useMemo, useState } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import type {
-  pairAggregateSchema,
-  pairFilterSchema,
-  pairOrderBySchema,
-} from "@rhiva-ag/trpc";
+import InfiniteScroll from "react-infinite-scroll-component";
+import type { pairSelectSchema } from "@rhiva-ag/datasource";
+import type { pairFilterSchema, pairOrderBySchema } from "@rhiva-ag/trpc";
 
 import Search from "./Search";
 import Filter from "./Filter";
-import PoolCard from "./PoolCard";
-import { useTRPC, useTRPCClient } from "../trpc.client";
 import Decimal from "./Decimal";
+import PoolCard from "./PoolCard";
+import { useTRPC } from "../trpc.client";
+import { trpcClient } from "../trpc.server";
 
 type PoolListProps = {
   limit: number;
   chart?: Chart;
-  pools?: z.infer<typeof pairAggregateSchema>[];
+  pools?: z.infer<typeof pairSelectSchema>[];
 };
 
-export default function PoolList({ pools, chart, limit }: PoolListProps) {
+export default function PoolList({ pools = [], limit, chart }: PoolListProps) {
   const trpc = useTRPC();
-  const trpcClient = useTRPCClient();
   const [args, setArgs] = useState<{
     filter?: Partial<z.infer<typeof pairFilterSchema>>;
     orderBy?: z.infer<typeof pairOrderBySchema>;
@@ -33,7 +30,7 @@ export default function PoolList({ pools, chart, limit }: PoolListProps) {
 
   const fetch = useCallback(
     async ({ pageParam = 0 }) => {
-      const pools = await trpcClient.pair.aggregrate.query({
+      const pools = await trpcClient.pair.list.query({
         ...args,
         limit,
         offset: pageParam,
@@ -48,30 +45,31 @@ export default function PoolList({ pools, chart, limit }: PoolListProps) {
         nextOffset: pools.length === limit ? pageParam + limit : undefined,
       };
     },
-    [args, limit, trpcClient],
+    [args, limit],
   );
 
-  const { data, fetchNextPage, refetch, hasNextPage } = useInfiniteQuery({
-    initialData: pools
-      ? {
-          pages: [
-            {
-              items: pools,
-              nextOffset: pools?.length === limit ? limit : undefined,
-            },
-          ],
-          pageParams: [0],
-        }
-      : undefined,
-    queryFn: fetch,
-    initialPageParam: 0,
-    queryKey: trpc.pair.aggregrate.queryKey(),
-    getNextPageParam: (page) => page.nextOffset,
-  });
+  const { data, fetchNextPage, refetch, hasNextPage, isFetching } =
+    useInfiniteQuery({
+      initialData: pools
+        ? {
+            pages: [
+              {
+                items: pools,
+                nextOffset: pools?.length === limit ? limit : undefined,
+              },
+            ],
+            pageParams: [0],
+          }
+        : undefined,
+      queryFn: fetch,
+      initialPageParam: 0,
+      queryKey: trpc.pair.list.queryKey(args),
+      getNextPageParam: (page) => page.nextOffset,
+    });
 
   const allPages = useMemo(
-    () => data.pages.flatMap((page) => page.items),
-    [data.pages],
+    () => data?.pages.flatMap((page) => page.items),
+    [data?.pages],
   );
 
   return (
@@ -84,7 +82,10 @@ export default function PoolList({ pools, chart, limit }: PoolListProps) {
               setArgs((args) => {
                 return {
                   ...args,
-                  search: { name: { ilike: value }, id: { ilike: value } },
+                  search: {
+                    name: { ilike: format("%%%s%%", value) },
+                    address: { ilike: format("%%%s%%", value) },
+                  },
                 };
               });
             }}
@@ -120,24 +121,28 @@ export default function PoolList({ pools, chart, limit }: PoolListProps) {
       </div>
 
       <div className="flex-1 flex flex-col space-y-2">
-        <InfiniteScroll
-          pullDownToRefresh
-          dataLength={allPages.length}
-          hasMore={hasNextPage}
-          next={fetchNextPage}
-          refreshFunction={refetch}
-          loader={
-            <div className="m-auto size-8 border-3 border-primary border-t-transparent rounded-full animate-spin" />
-          }
-          className="flex-1 flex flex-col gap-y-4 md:flex-row md:flex-wrap md:gap-4 md:justify-center"
-        >
-          {allPages.map((pair) => (
-            <PoolCard
-              key={pair.id}
-              pair={pair}
-            />
-          ))}
-        </InfiniteScroll>
+        {isFetching ? (
+          <div className="m-auto size-8 border-3 border-primary border-t-transparent rounded-full animate-spin" />
+        ) : (
+          <InfiniteScroll
+            pullDownToRefresh
+            dataLength={allPages.length}
+            hasMore={hasNextPage}
+            next={fetchNextPage}
+            refreshFunction={refetch}
+            loader={
+              <div className="m-auto size-6 border-3 border-primary border-t-transparent rounded-full animate-spin" />
+            }
+            className="flex-1 flex flex-col gap-y-4 md:grid md:grid-cols-2 md:gap-4 lg:flex lg:flex-row xl:flex-wrap xl:justify-center"
+          >
+            {allPages.map((pair) => (
+              <PoolCard
+                key={pair.address}
+                pair={pair}
+              />
+            ))}
+          </InfiniteScroll>
+        )}
       </div>
     </section>
   );

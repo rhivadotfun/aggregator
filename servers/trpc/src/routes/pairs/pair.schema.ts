@@ -1,56 +1,23 @@
 import z from "zod";
 import {
-  mintSelectSchema,
   orderByOperator,
   pairSelectSchema,
   whereOperator,
 } from "@rhiva-ag/datasource";
 
 export const pairFilterSchema = z.object({
-  name: whereOperator(z.string()),
-  totalFee: whereOperator(z.number()),
-  binStep: whereOperator(z.number()),
-  baseFee: whereOperator(z.number()),
-  liquidity: whereOperator(z.number()),
-  volume: whereOperator(z.number()),
-  maxFee: whereOperator(z.number()),
-  dynamicFee: whereOperator(z.number()),
-  protocolFee: whereOperator(z.number()),
+  bin_step: whereOperator(z.number()),
+  fdv_usd: whereOperator(z.number()),
+  market_cap_usd: whereOperator(z.number()),
+  reserve_in_usd: whereOperator(z.number()),
   market: whereOperator(pairSelectSchema.shape.market),
 });
 
 export const pairSearchSchema = z.object({
   name: whereOperator(z.string()),
+  address: whereOperator(z.string()),
 });
 
 export const pairOrderBySchema = orderByOperator(
-  z.enum([
-    "H24SwapsVolumeUsd",
-    "M5SwapsFeeUsd",
-    "H1SwapsFeeUsd",
-    "h6SwapsFeeUsd",
-    "H24SwapsFeeUsd",
-    "fees",
-    "baseFee",
-    "dynamicFee",
-    "protocolfee",
-  ]),
+  z.enum(["fdv_usd", "market_cap_usd", "reserve_in_usd", "fees24h"]),
 );
-
-const swapAggregateSchema = z.object({
-  tvl: z.number(),
-  fees: z.number(),
-  buyCount: z.number(),
-  sellCount: z.number(),
-  volume: z.number(),
-});
-
-export const pairAggregateSchema = pairSelectSchema.extend({
-  totalFee: z.number(),
-  baseMint: mintSelectSchema,
-  quoteMint: mintSelectSchema,
-  M5: swapAggregateSchema,
-  H1: swapAggregateSchema,
-  H6: swapAggregateSchema,
-  H24: swapAggregateSchema,
-});

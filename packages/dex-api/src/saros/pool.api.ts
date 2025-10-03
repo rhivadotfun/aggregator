@@ -6,10 +6,10 @@ import type { Response } from "./models/response.model";
 export class PoolApi extends ApiImpl {
   path: string = "dex-v3/pool";
 
-  list() {
+  list(page: number = 1) {
     return ApiImpl.getData(
       this.xior.get<Response<{ data: Pool[]; page: number; total: number }>>(
-        this.path,
+        this.buildPathWithQueryString(this.path, { page }),
       ),
     );
   }

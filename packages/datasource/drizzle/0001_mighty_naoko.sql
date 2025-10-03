@@ -1,0 +1,1 @@
+ALTER TABLE "pairs" ADD COLUMN "base_fee" double precision NOT NULL;

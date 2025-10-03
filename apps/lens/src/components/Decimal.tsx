@@ -27,7 +27,7 @@ export default function Decimal({
 
   const sign = (
     <span>
-      {value > -1 ? showPositiveSign && "+" : "-"}
+      {value > -1 ? showPositiveSign && value !== 0 && "+" : "-"}
       {leading}
     </span>
   );

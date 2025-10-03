@@ -1,17 +1,9 @@
-import { integer, jsonb, pgTable, text, timestamp } from "drizzle-orm/pg-core";
-
-type Extra = {
-  uri?: string;
-  metadata?: Record<string, unknown>;
-};
+import { integer, pgTable, text } from "drizzle-orm/pg-core";
 
 export const mints = pgTable("mints", {
-  id: text().primaryKey(),
-  name: text(),
-  symbol: text(),
+  name: text().notNull(),
+  symbol: text().notNull(),
+  address: text().primaryKey(),
+  image_url: text().notNull(),
   decimals: integer().notNull(),
-  extra: jsonb().$type<Extra>().notNull(),
-  tokenProgram: text().notNull(),
-  syncAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
-  createdAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
 });

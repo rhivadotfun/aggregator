@@ -9,6 +9,7 @@ type Env =
   | "RPC_URL"
   | "REDIS_URL"
   | "DATABASE_URL"
+  | "COINGECKO_API_KEY"
   | "SOLANA_TRACKER_API_KEY";
 
 export const getEnv = <T extends object | number | string | null = string>(

@@ -12,6 +12,7 @@
     "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
   },
   "dependencies": {
+    "@coingecko/coingecko-typescript": "^2.0.0",
     "@coral-xyz/anchor": "^0.31.1",
     "@headlessui/react": "^2.2.9",
     "@opennextjs/cloudflare": "^1.9.0",

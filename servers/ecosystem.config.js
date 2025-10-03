@@ -18,28 +18,11 @@ module.exports = {
     },
     {
       interpreter,
-      instances: 2,
+      instances: 1,
       exec_mode: "fork",
       name: "worker.jobs",
+      cron_restart: "*/2 * * * *",
       script: "worker/src/jobs/index.ts",
-    },
-    {
-      interpreter,
-      instances: 1,
-      exec_mode: "fork",
-      name: "worker.tasks",
-      script: "worker/src/tasks/index.ts",
-    },
-    {
-      interpreter,
-      instances: 1,
-      name: "metrics",
-      exec_mode: "fork",
-      increment_var: "PORT",
-      script: "metrics/src/index.ts",
-      env: {
-        PORT: 8001,
-      },
     },
   ],
 };

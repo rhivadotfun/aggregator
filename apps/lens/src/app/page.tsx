@@ -1,21 +1,16 @@
 import moment from "moment";
 import Image from "next/image";
-import { SarosApi } from "@rhiva-ag/dex-api";
 
+import { dexApi } from "../instances";
 import Saros from "../assets/saros.jpg";
 import Header from "../components/Header";
-import { trpcClient } from "../trpc.server";
 import PoolList from "../components/PoolList";
 
 export const dynamic = "force-dynamic";
 export default async function HomePage() {
-  const dexApi = new SarosApi("https://api.saros.xyz/api/");
-  const sarosCharts = await dexApi.pool.chart(
+  const sarosChartResponse = await dexApi.saros.pool.chart(
     moment().startOf("day").toDate().getTime(),
   );
-  const pools = await trpcClient.pair.aggregrate.query({
-    filter: { market: { eq: "saros" } },
-  });
 
   return (
     <div className="flex-1 flex flex-col space-y-4">
@@ -32,9 +27,8 @@ export default async function HomePage() {
           />
         </div>
         <PoolList
-          pools={pools}
           limit={24}
-          chart={sarosCharts.data.at(0)}
+          chart={sarosChartResponse.data.at(0)}
         />
       </div>
     </div>

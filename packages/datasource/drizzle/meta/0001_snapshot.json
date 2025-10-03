@@ -1,0 +1,172 @@
+{
+  "id": "91c5d371-e2cb-4aa9-9e1e-5eb1b8d6576d",
+  "prevId": "609324ca-0851-436d-bc1c-aba311346b18",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.mints": {
+      "name": "mints",
+      "schema": "",
+      "columns": {
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "symbol": {
+          "name": "symbol",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "address": {
+          "name": "address",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "image_url": {
+          "name": "image_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "decimals": {
+          "name": "decimals",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.pairs": {
+      "name": "pairs",
+      "schema": "",
+      "columns": {
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "market": {
+          "name": "market",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "address": {
+          "name": "address",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "fees24h": {
+          "name": "fees24h",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "base_fee": {
+          "name": "base_fee",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "bin_step": {
+          "name": "bin_step",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "reserve_in_usd": {
+          "name": "reserve_in_usd",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "extra": {
+          "name": "extra",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "fdv_usd": {
+          "name": "fdv_usd",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "market_cap_usd": {
+          "name": "market_cap_usd",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "pool_created_at": {
+          "name": "pool_created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "base_token": {
+          "name": "base_token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "quote_token": {
+          "name": "quote_token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "pairs_base_token_mints_address_fk": {
+          "name": "pairs_base_token_mints_address_fk",
+          "tableFrom": "pairs",
+          "tableTo": "mints",
+          "columnsFrom": ["base_token"],
+          "columnsTo": ["address"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "pairs_quote_token_mints_address_fk": {
+          "name": "pairs_quote_token_mints_address_fk",
+          "tableFrom": "pairs",
+          "tableTo": "mints",
+          "columnsFrom": ["quote_token"],
+          "columnsTo": ["address"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

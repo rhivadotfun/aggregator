@@ -1,8 +1,10 @@
-import { connection, db } from "./instances";
+import { coingecko, connection, db, solanatracker } from "./instances";
 
 export const createContext = async () => {
   return {
+    coingecko,
     drizzle: db,
+    solanatracker,
     solanaConnection: connection,
   };
 };
